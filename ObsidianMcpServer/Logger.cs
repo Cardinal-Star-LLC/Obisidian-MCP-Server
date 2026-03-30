@@ -2,7 +2,7 @@
 
 namespace ObsidianMcpServer
 {
-    internal class Logger : ILogger
+    internal class Logger : IMcpLogger
     {
         private readonly string _logPath;
         private readonly string _logFileName;
@@ -11,6 +11,13 @@ namespace ObsidianMcpServer
         {
             _logFileName = AppDomain.CurrentDomain.FriendlyName + ".log";
             _logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log", _logFileName);
+
+            var fileInfo = new FileInfo(_logPath);
+
+            if (!Directory.Exists(fileInfo.Directory.FullName))
+            {
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
+            }
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull

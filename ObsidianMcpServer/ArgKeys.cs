@@ -5,10 +5,10 @@
 /// </summary>
 static class ArgKeys
 {
-    public const string Path          = "path";
-    public const string Content       = "content";
-    public const string Recursive     = "recursive";
-    public const string Query         = "query";
+    public const string Path = "path";
+    public const string Content = "content";
+    public const string Recursive = "recursive";
+    public const string Query = "query";
     public const string ContextLength = "contextLength";
-    public const string NewLeaf       = "newLeaf";
+    public const string NewLeaf = "newLeaf";
 }

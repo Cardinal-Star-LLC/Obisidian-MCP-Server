@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using ObsidianMcpServer;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -19,14 +19,14 @@ using System.Text.Json.Nodes;
 class ObsidianClient : IObsidianClient
 {
     // ── Endpoint paths ────────────────────────────────────────────────────────
-    const string StatusEndpoint  = "/";
-    const string VaultRoot       = "/vault/";
-    const string ActiveEndpoint  = "/active/";
-    const string SearchEndpoint  = "/search/simple/";
-    const string OpenEndpoint    = "/open/";
+    const string StatusEndpoint = "/";
+    const string VaultRoot = "/vault/";
+    const string ActiveEndpoint = "/active/";
+    const string SearchEndpoint = "/search/simple/";
+    const string OpenEndpoint = "/open/";
 
     // ── Content types ─────────────────────────────────────────────────────────
-    const string JsonContentType     = "application/json";
+    const string JsonContentType = "application/json";
     const string MarkdownContentType = "text/markdown";
 
     // ── API response keys ─────────────────────────────────────────────────────
@@ -35,12 +35,12 @@ class ObsidianClient : IObsidianClient
     // ── Shared HTTP primitives ────────────────────────────────────────────────
     static readonly MediaTypeWithQualityHeaderValue _markdownType = new(MarkdownContentType);
 
-    readonly HttpClient             _http;
-    readonly ILogger                _logger;
+    readonly HttpClient _http;
+    readonly IMcpLogger _logger;
 
-    internal ObsidianClient(HttpClient http, ILogger logger)
+    internal ObsidianClient(HttpClient http, IMcpLogger logger)
     {
-        _http   = http;
+        _http = http;
         _logger = logger;
     }
 
@@ -54,7 +54,7 @@ class ObsidianClient : IObsidianClient
 
     public async Task<string> ListFiles(JsonObject args, CancellationToken ct = default)
     {
-        var path      = args[ArgKeys.Path]?.GetValue<string>() ?? "";
+        var path = args[ArgKeys.Path]?.GetValue<string>() ?? "";
         var recursive = args[ArgKeys.Recursive]?.GetValue<bool>() ?? false;
 
         if (!recursive)
@@ -103,7 +103,7 @@ class ObsidianClient : IObsidianClient
 
     public async Task<string> SearchNotes(JsonObject args, CancellationToken ct = default)
     {
-        var query  = RequiredString(args, ArgKeys.Query);
+        var query = RequiredString(args, ArgKeys.Query);
         var ctxLen = args[ArgKeys.ContextLength]?.GetValue<int>() ?? 100;
         using var lcts = ReadLinked(ct);
         var res = await _http.PostAsync(
@@ -115,7 +115,7 @@ class ObsidianClient : IObsidianClient
     public async Task<string> OpenFile(JsonObject args, CancellationToken ct = default)
     {
         var newLeaf = args[ArgKeys.NewLeaf]?.GetValue<bool>() ?? false;
-        var body    = new StringContent(
+        var body = new StringContent(
             new JsonObject { [ArgKeys.NewLeaf] = newLeaf }.ToJsonString(),
             Encoding.UTF8, JsonContentType);
         using var lcts = ReadLinked(ct);
@@ -141,7 +141,7 @@ class ObsidianClient : IObsidianClient
     async Task WalkDirectory(string dirPath, List<string> results, CancellationToken ct)
     {
         var url = VaultDirUrl(dirPath);
-        _logger.Log(LogLevel.Information, $"WalkDirectory: GET {url}");
+        _logger.Log($"WalkDirectory: GET {url}");
 
         HttpResponseMessage res;
         try
@@ -149,11 +149,11 @@ class ObsidianClient : IObsidianClient
             using var lcts = ReadLinked(ct);
             res = await _http.GetAsync(url, lcts.Token);
         }
-        catch (Exception ex) { _logger.Log(LogLevel.Information, $"WalkDirectory error at '{url}': {ex.Message}"); return; }
+        catch (Exception ex) { _logger.Log($"WalkDirectory error at '{url}': {ex.Message}"); return; }
 
         JsonObject? obj;
-        try   { obj = JsonNode.Parse(await res.Content.ReadAsStringAsync(ct))?.AsObject(); }
-        catch { _logger.Log(LogLevel.Information, $"WalkDirectory: failed to parse response for '{url}'"); return; }
+        try { obj = JsonNode.Parse(await res.Content.ReadAsStringAsync(ct))?.AsObject(); }
+        catch { _logger.Log($"WalkDirectory: failed to parse response for '{url}'"); return; }
 
         var files = obj?[FilesKey]?.AsArray();
         if (files is null) return;
@@ -164,8 +164,8 @@ class ObsidianClient : IObsidianClient
             var name = entry?.GetValue<string>();
             if (string.IsNullOrEmpty(name)) continue;
 
-            var trimmed  = name.TrimEnd('/');
-            var isDir    = trimmed.Length < name.Length;
+            var trimmed = name.TrimEnd('/');
+            var isDir = trimmed.Length < name.Length;
             var fullPath = string.IsNullOrEmpty(dirPath) ? trimmed : $"{dirPath}/{trimmed}";
 
             if (isDir)
@@ -203,7 +203,7 @@ class ObsidianClient : IObsidianClient
             ? VaultRoot
             : VaultRoot + string.Join("/", path.TrimEnd('/').Split('/').Select(Uri.EscapeDataString)) + "/";
     static string StatusLine(HttpResponseMessage r) => $"HTTP {(int)r.StatusCode} {r.ReasonPhrase}";
-    static StringContent MarkdownContent(string s)  => new(s, Encoding.UTF8, MarkdownContentType);
+    static StringContent MarkdownContent(string s) => new(s, Encoding.UTF8, MarkdownContentType);
 
     static string RequiredString(JsonObject args, string key)
     {

@@ -8,13 +8,13 @@ using System.Text.Json.Nodes;
 /// </summary>
 interface IObsidianClient
 {
-    Task<string> GetStatus   (CancellationToken ct = default);
-    Task<string> ListFiles   (JsonObject args, CancellationToken ct = default);
-    Task<string> ReadNote    (JsonObject args, CancellationToken ct = default);
-    Task<string> WriteNote   (JsonObject args, CancellationToken ct = default);
-    Task<string> AppendNote  (JsonObject args, CancellationToken ct = default);
-    Task<string> DeleteNote  (JsonObject args, CancellationToken ct = default);
-    Task<string> SearchNotes (JsonObject args, CancellationToken ct = default);
+    Task<string> GetStatus(CancellationToken ct = default);
+    Task<string> ListFiles(JsonObject args, CancellationToken ct = default);
+    Task<string> ReadNote(JsonObject args, CancellationToken ct = default);
+    Task<string> WriteNote(JsonObject args, CancellationToken ct = default);
+    Task<string> AppendNote(JsonObject args, CancellationToken ct = default);
+    Task<string> DeleteNote(JsonObject args, CancellationToken ct = default);
+    Task<string> SearchNotes(JsonObject args, CancellationToken ct = default);
     Task<string> GetActiveFile(CancellationToken ct = default);
-    Task<string> OpenFile    (JsonObject args, CancellationToken ct = default);
+    Task<string> OpenFile(JsonObject args, CancellationToken ct = default);
 }

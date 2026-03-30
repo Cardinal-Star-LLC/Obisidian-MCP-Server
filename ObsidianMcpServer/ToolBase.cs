@@ -7,20 +7,20 @@ using System.Text.Json.Nodes;
 /// </summary>
 abstract class ToolBase : ITool
 {
-    public abstract string       Name        { get; }
-    public abstract string       Description { get; }
-    public abstract JsonObject   InputSchema { get; }
+    public abstract string Name { get; }
+    public abstract string Description { get; }
+    public abstract JsonObject InputSchema { get; }
     public abstract Task<string> ExecuteAsync(JsonObject args, CancellationToken ct = default);
 
     // ── JSON Schema structural keys ───────────────────────────────────────────
-    protected const string SchemaType        = "type";
-    protected const string SchemaProperties  = "properties";
-    protected const string SchemaRequired    = "required";
+    protected const string SchemaType = "type";
+    protected const string SchemaProperties = "properties";
+    protected const string SchemaRequired = "required";
     protected const string SchemaDescription = "description";
 
     // ── JSON Schema type values ───────────────────────────────────────────────
-    protected const string TypeObject  = "object";
-    protected const string TypeString  = "string";
+    protected const string TypeObject = "object";
+    protected const string TypeString = "string";
     protected const string TypeBoolean = "boolean";
     protected const string TypeInteger = "integer";
 
@@ -28,14 +28,14 @@ abstract class ToolBase : ITool
 
     protected static JsonObject EmptySchema() => new()
     {
-        [SchemaType]       = TypeObject,
+        [SchemaType] = TypeObject,
         [SchemaProperties] = new JsonObject()
     };
 
     protected static JsonObject Props(params (string name, string type, string desc, bool required)[] props)
     {
         var properties = new JsonObject();
-        var required   = new JsonArray();
+        var required = new JsonArray();
         foreach (var (n, t, d, r) in props)
         {
             properties[n] = new JsonObject { [SchemaType] = t, [SchemaDescription] = d };

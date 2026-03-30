@@ -42,9 +42,9 @@ class Program
             BaseAddress = new Uri(ServerConfig.BaseUrl),
             // Set to WriteTimeout (the larger of the two) so HttpClient never
             // fires before our own per-operation linked tokens do.
-            Timeout     = ServerConfig.WriteTimeout
+            Timeout = ServerConfig.WriteTimeout
         };
-        http.DefaultRequestHeaders.Authorization  = new AuthenticationHeaderValue(ServerConfig.AuthScheme, apiKey);
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ServerConfig.AuthScheme, apiKey);
         http.DefaultRequestHeaders.ConnectionClose = true;
         logger.Log($"HttpClient ready. Base URL: {ServerConfig.BaseUrl}, ReadTimeout: {ServerConfig.ReadTimeout.TotalSeconds}s, WriteTimeout: {ServerConfig.WriteTimeout.TotalSeconds}s, ConnectionClose=true");
 
@@ -68,56 +68,64 @@ class Program
 
         // ── stdio transport ───────────────────────────────────────────────────
         var noBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        using var stdin  = Console.OpenStandardInput();
+        using var stdin = Console.OpenStandardInput();
         using var stdout = Console.OpenStandardOutput();
-        using var reader = new StreamReader(stdin,  noBom);
+        using var reader = new StreamReader(stdin, noBom);
         using var writer = new StreamWriter(stdout, noBom) { AutoFlush = true };
 
         logger.Log("Listening on stdin...");
 
         while (true)
         {
-            string? line;
-            try   { line = await reader.ReadLineAsync(); }
-            catch (Exception ex) { logger.Log($"stdin read error: {ex.Message}"); break; }
-
-            if (line is null) { logger.Log("stdin closed. Exiting."); break; }
-            if (string.IsNullOrWhiteSpace(line)) continue;
-
-            logger.Log($"IN:  {line}");
-
-            JsonObject? request;
-            try   { request = JsonNode.Parse(line)?.AsObject(); }
-            catch (Exception ex) { logger.Log($"JSON parse error: {ex.Message}"); continue; }
-            if (request is null) continue;
-
-            JsonObject? response;
             try
             {
-                using var cts = new CancellationTokenSource(ServerConfig.RequestTimeout);
-                response = await server.HandleRequest(request, cts.Token).WaitAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                logger.Log($"TIMEOUT handling method '{request[McpServer.KeyMethod]}'");
-                response = McpServer.Error(
-                    request[McpServer.KeyId],
-                    McpServer.InternalError,
-                    string.Format(TimeoutMessage, ServerConfig.RequestTimeout.TotalSeconds));
+                string? line;
+                try { line = await reader.ReadLineAsync(); }
+                catch (Exception ex) { logger.Log($"stdin read error: {ex.Message}"); break; }
+
+                if (line is null) { logger.Log("stdin closed. Exiting."); break; }
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                logger.Log($"IN:  {line}");
+
+                JsonObject? request;
+                try { request = JsonNode.Parse(line)?.AsObject(); }
+                catch (Exception ex) { logger.Log($"JSON parse error: {ex.Message}"); continue; }
+                if (request is null) continue;
+
+                JsonObject? response;
+                try
+                {
+                    using var cts = new CancellationTokenSource(ServerConfig.RequestTimeout);
+                    response = await server.HandleRequest(request, cts.Token).WaitAsync(cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    logger.Log($"TIMEOUT handling method '{request[McpServer.KeyMethod]}'");
+                    response = McpServer.Error(
+                        request[McpServer.KeyId],
+                        McpServer.InternalError,
+                        string.Format(TimeoutMessage, ServerConfig.RequestTimeout.TotalSeconds));
+                }
+                catch (Exception ex)
+                {
+                    logger.Log($"Unhandled error: {ex.Message}");
+                    response = McpServer.Error(request[McpServer.KeyId], McpServer.InternalError, ex.Message);
+                }
+
+                if (response is not null)
+                {
+                    var json = response.ToJsonString();
+                    logger.Log($"OUT: {json}");
+                    try { await writer.WriteLineAsync(json); }
+                    catch (Exception ex) { logger.Log($"stdout write error: {ex.Message}"); break; }
+                }
             }
             catch (Exception ex)
             {
-                logger.Log($"Unhandled error: {ex}");
-                response = McpServer.Error(request[McpServer.KeyId], McpServer.InternalError, ex.Message);
+                logger.Log($"Unhandled error: {ex.Message}");
             }
 
-            if (response is not null)
-            {
-                var json = response.ToJsonString();
-                logger.Log($"OUT: {json}");
-                try   { await writer.WriteLineAsync(json); }
-                catch (Exception ex) { logger.Log($"stdout write error: {ex.Message}"); break; }
-            }
         }
 
         logger.Log("Server stopped.");

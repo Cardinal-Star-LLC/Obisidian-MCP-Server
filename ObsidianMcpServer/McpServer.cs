@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using ObsidianMcpServer;
 using System.Text.Json.Nodes;
 
 /// <summary>
@@ -49,11 +49,11 @@ class McpServer
     const string KeyText = "text";
     const string TypeText = "text";
 
-    readonly ILogger _logger;
+    readonly IMcpLogger _logger;
     readonly IReadOnlyList<ITool> _tools;
     readonly IReadOnlyDictionary<string, ITool> _toolMap;
 
-    internal McpServer(IEnumerable<ITool> tools, ILogger logger)
+    internal McpServer(IEnumerable<ITool> tools, IMcpLogger logger)
     {
         _tools = tools.ToList();
         _toolMap = _tools.ToDictionary(t => t.Name);
@@ -68,7 +68,7 @@ class McpServer
         var method = req[KeyMethod]?.GetValue<string>() ?? "";
         bool isNotification = id is null;
 
-        _logger.Log(LogLevel.Information, $"Handling: '{method}' (notification={isNotification})");
+        _logger.Log($"Handling: '{method}' (notification={isNotification})");
 
         try
         {
@@ -84,7 +84,7 @@ class McpServer
         }
         catch (Exception ex)
         {
-            _logger.Log(LogLevel.Information, $"Error in HandleRequest ({method}): {ex}");
+            _logger.Log($"Error in HandleRequest ({method}): {ex}");
             return isNotification ? null : Error(id, InternalError, ex.Message);
         }
     }
@@ -97,7 +97,7 @@ class McpServer
         var name = p?[KeyName]?.GetValue<string>() ?? "";
         var args = p?[KeyArguments]?.AsObject() ?? new JsonObject();
 
-        _logger.Log(LogLevel.Information, $"CallTool: '{name}' args={args.ToJsonString()}");
+        _logger.Log($"CallTool: '{name}' args={args.ToJsonString()}");
 
         string result;
         try
@@ -113,22 +113,22 @@ class McpServer
                       $"write={ServerConfig.WriteTimeout.TotalSeconds}s, " +
                       $"request={ServerConfig.RequestTimeout.TotalSeconds}s). " +
                        "Is Obsidian running with the Local REST API plugin enabled?";
-            _logger.Log(LogLevel.Information, msg);
+            _logger.Log(msg);
             result = $"ERROR: {msg}";
         }
         catch (HttpRequestException ex)
         {
             var msg = $"HTTP error calling tool '{name}': {ex.Message}";
-            _logger.Log(LogLevel.Information, msg);
+            _logger.Log(msg);
             result = $"ERROR: {msg}";
         }
         catch (Exception ex)
         {
-            _logger.Log(LogLevel.Information, $"Tool '{name}' error: {ex}");
+            _logger.Log($"Tool '{name}' error: {ex}");
             result = $"ERROR: {ex.Message}";
         }
 
-        _logger.Log(LogLevel.Information, $"CallTool '{name}' result (first 200 chars): {result[..Math.Min(200, result.Length)]}");
+        _logger.Log($"CallTool '{name}' result (first 200 chars): {result[..Math.Min(200, result.Length)]}");
 
         return new JsonObject
         {
