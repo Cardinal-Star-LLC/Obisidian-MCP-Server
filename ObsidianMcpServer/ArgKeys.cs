@@ -1,3 +1,5 @@
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// JSON argument key names shared between ObsidianClient (which reads them)
 /// and tool schema definitions (which declare them via Prop()).

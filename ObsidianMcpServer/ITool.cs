@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
 /// <summary>
 /// A single MCP tool. Implement this to add a new tool without modifying
 /// McpServer — open for extension, closed for modification.

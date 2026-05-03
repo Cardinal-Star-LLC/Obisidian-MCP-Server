@@ -1,6 +1,8 @@
 using ObsidianMcpServer;
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// MCP protocol handler. Depends on ITool and ILogger abstractions only.
 /// Adding a new tool requires zero changes here — register it in Program.cs.
@@ -51,7 +53,7 @@ class McpServer
 
     readonly IMcpLogger _logger;
     readonly IReadOnlyList<ITool> _tools;
-    readonly IReadOnlyDictionary<string, ITool> _toolMap;
+    readonly Dictionary<string, ITool> _toolMap;
 
     internal McpServer(IEnumerable<ITool> tools, IMcpLogger logger)
     {

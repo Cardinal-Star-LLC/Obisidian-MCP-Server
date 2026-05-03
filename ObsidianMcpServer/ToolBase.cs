@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// Abstract base for all ITool implementations.
 /// Provides protected schema-building helpers (Props, Prop, EmptySchema)

@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// Concrete implementation of IObsidianClient backed by HttpClient.
 /// All HTTP concerns are contained here; no protocol or tool logic leaks in.
