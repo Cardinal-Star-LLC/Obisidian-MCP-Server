@@ -1,3 +1,5 @@
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// Central configuration for the MCP server and its HTTP client.
 /// All tunable values and server identity strings live here.

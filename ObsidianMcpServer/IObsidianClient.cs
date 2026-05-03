@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
+
 /// <summary>
 /// Abstraction over the Obsidian Local REST API.
 /// McpServer and all tools depend on this, never on the concrete HttpClient.

@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
 
+namespace ObsidianMcpServer;
+
 class GetStatusTool : ToolBase
 {
     readonly IObsidianClient _client;
